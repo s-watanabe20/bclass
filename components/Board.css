@@ -1,0 +1,37 @@
+.board {
+    display: grid;
+    gap: 5px;
+    margin: 20px auto;
+    background-color: #228B22;
+    border: 2px solid #000;
+    width: fit-content;
+    grid-template-columns: repeat(auto-fill, 50px);
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    background-color: #006400;
+    border: 1px solid #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell:hover {
+    background-color: #32CD32;
+}
+
+.piece {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+}
+
+.piece.black {
+    background-color: black;
+}
+
+.piece.white {
+    background-color: white;
+}
