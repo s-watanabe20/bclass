@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Board from './Board';
 
 function Game({ boardSize, player1, player2, onGameOver }) {
     const [board, setBoard] = useState([]);
     const [currentPlayer, setCurrentPlayer] = useState('black');
     const [winner, setWinner] = useState(null);
+    const [blackCount, setBlackCount] = useState(0);
+    const [whiteCount, setWhiteCount] = useState(0);
+    const timerRef = useRef(null);
+    const [timeLeft, setTimeLeft] = useState(30);
 
     useEffect(() => {
         const initialBoard = Array.from({ length: boardSize }, () =>
@@ -16,7 +20,20 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         initialBoard[mid - 1][mid] = 'black';
         initialBoard[mid][mid - 1] = 'black';
         setBoard(initialBoard);
+        resetTimer();
     }, [boardSize]);
+
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            handleSkip();
+        }
+        const timerId = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+        return () => clearInterval(timerId);
+    }, [timeLeft]);
+
+    const resetTimer = () => {
+        setTimeLeft(30);
+    };
 
     const handleCellClick = (row, col) => {
         if (board[row][col] || winner) return;
@@ -26,22 +43,28 @@ function Game({ boardSize, player1, player2, onGameOver }) {
 
         if (validMove) {
             setBoard(newBoard);
+            resetTimer();
             setCurrentPlayer(currentPlayer === 'black' ? 'white' : 'black');
 
             if (checkGameOver(newBoard)) {
                 const winner = calculateWinner(newBoard);
                 setWinner(winner);
-                onGameOver(winner);
-                saveGameResult(player1, player2, winner);
+                updateCounts(newBoard);
+                onGameOver(winner, blackCount, whiteCount);
             }
         }
+    };
+
+    const handleSkip = () => {
+        resetTimer();
+        setCurrentPlayer(currentPlayer === 'black' ? 'white' : 'black');
     };
 
     const handleSurrender = () => {
         const winner = currentPlayer === 'black' ? 'white' : 'black';
         setWinner(winner);
-        onGameOver(winner);
-        saveGameResult(player1, player2, winner);
+        updateCounts(board);
+        onGameOver(winner, blackCount, whiteCount);
     };
 
     const makeMove = (board, row, col, player) => {
@@ -119,33 +142,31 @@ function Game({ boardSize, player1, player2, onGameOver }) {
                 if (board[row][col] === 'white') whiteCount++;
             }
         }
+        setBlackCount(blackCount);
+        setWhiteCount(whiteCount);
         return blackCount > whiteCount ? 'black' : 'white';
     };
 
-    const saveGameResult = async (player1, player2, winner) => {
-        const result = {
-            player1,
-            player2,
-            winner,
-        };
-        try {
-            await fetch('http://localhost:8080/api/games', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(result),
-            });
-        } catch (error) {
-            console.error('Error saving game result:', error);
+    const updateCounts = (board) => {
+        let blackCount = 0;
+        let whiteCount = 0;
+        for (let row = 0; row < boardSize; row++) {
+            for (let col = 0; col < boardSize; col++) {
+                if (board[row][col] === 'black') blackCount++;
+                if (board[row][col] === 'white') whiteCount++;
+            }
         }
+        setBlackCount(blackCount);
+        setWhiteCount(whiteCount);
     };
 
     return (
         <div className="game">
             <h2>{currentPlayer === 'black' ? player1 : player2}のターン</h2>
             <Board board={board} onCellClick={handleCellClick} />
+            <button onClick={handleSkip}>スキップ</button>
             <button onClick={handleSurrender}>降参</button>
+            <div>制限時間: {timeLeft}秒</div>
             {winner && (
                 <div className="winner">
                     勝者: {winner === 'black' ? player1 : player2}

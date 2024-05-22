@@ -12,6 +12,8 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [history, setHistory] = useState([]);
   const [scores, setScores] = useState({ player1: 0, player2: 0 });
+  const [blackCount, setBlackCount] = useState(0);
+  const [whiteCount, setWhiteCount] = useState(0);
 
   const handleStart = (size, p1, p2) => {
     setBoardSize(size);
@@ -20,13 +22,17 @@ function App() {
     setScreen('game');
   };
 
-  const handleGameOver = (winner) => {
+  const handleGameOver = (winner, blackCount, whiteCount) => {
     setWinner(winner);
+    setBlackCount(blackCount);
+    setWhiteCount(whiteCount);
     setScreen('result');
     const newHistoryEntry = {
       player1,
       player2,
       winner,
+      blackCount,
+      whiteCount,
       timestamp: new Date().toLocaleString(),
     };
     setHistory([...history, newHistoryEntry]);
@@ -57,6 +63,8 @@ function App() {
           onRematch={handleRematch}
           history={history}
           scores={scores}
+          blackCount={blackCount}
+          whiteCount={whiteCount}
         />
       )}
     </div>
