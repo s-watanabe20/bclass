@@ -32,6 +32,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
                 const winner = calculateWinner(newBoard);
                 setWinner(winner);
                 onGameOver(winner);
+                saveGameResult(player1, player2, winner);
             }
         }
     };
@@ -40,6 +41,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         const winner = currentPlayer === 'black' ? 'white' : 'black';
         setWinner(winner);
         onGameOver(winner);
+        saveGameResult(player1, player2, winner);
     };
 
     const makeMove = (board, row, col, player) => {
@@ -118,6 +120,25 @@ function Game({ boardSize, player1, player2, onGameOver }) {
             }
         }
         return blackCount > whiteCount ? 'black' : 'white';
+    };
+
+    const saveGameResult = async (player1, player2, winner) => {
+        const result = {
+            player1,
+            player2,
+            winner,
+        };
+        try {
+            await fetch('http://localhost:8080/api/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(result),
+            });
+        } catch (error) {
+            console.error('Error saving game result:', error);
+        }
     };
 
     return (
