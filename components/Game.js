@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import Board from './Board';
 
 function Game({ boardSize, player1, player2, onGameOver }) {
-    const [board, setBoard] = useState([]);
-    const [currentPlayer, setCurrentPlayer] = useState('black');
-    const [winner, setWinner] = useState(null);
-    const [blackCount, setBlackCount] = useState(0);
-    const [whiteCount, setWhiteCount] = useState(0);
-    const timerRef = useRef(null);
-    const [timeLeft, setTimeLeft] = useState(30);
+    // 状態の設定
+    const [board, setBoard] = useState([]); // 盤の状態
+    const [currentPlayer, setCurrentPlayer] = useState('black'); // 現在のプレイヤー
+    const [winner, setWinner] = useState(null); // 勝者
+    const [blackCount, setBlackCount] = useState(0); // 黒の駒数
+    const [whiteCount, setWhiteCount] = useState(0); // 白の駒数
+    const timerRef = useRef(null); // タイマー参照
+    const [timeLeft, setTimeLeft] = useState(30); // 残り時間
 
+    // 初期盤面を設定
     useEffect(() => {
         const initialBoard = Array.from({ length: boardSize }, () =>
             Array(boardSize).fill(null)
@@ -24,6 +26,11 @@ function Game({ boardSize, player1, player2, onGameOver }) {
     }, [boardSize]);
 
     useEffect(() => {
+        document.documentElement.style.setProperty('--board-size', boardSize);
+    }, [boardSize]);
+
+    // タイマーの設定
+    useEffect(() => {
         if (timeLeft <= 0) {
             handleSkip();
         }
@@ -31,10 +38,12 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         return () => clearInterval(timerId);
     }, [timeLeft]);
 
+    // タイマーをリセット
     const resetTimer = () => {
-        setTimeLeft(30);
+        setTimeLeft(10);
     };
 
+    // セルがクリックされたときの処理
     const handleCellClick = (row, col) => {
         if (board[row][col] || winner) return;
 
@@ -55,11 +64,13 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         }
     };
 
+    // スキップボタンがクリックされたときの処理
     const handleSkip = () => {
         resetTimer();
         setCurrentPlayer(currentPlayer === 'black' ? 'white' : 'black');
     };
 
+    // 降参ボタンがクリックされたときの処理
     const handleSurrender = () => {
         const winner = currentPlayer === 'black' ? 'white' : 'black';
         setWinner(winner);
@@ -67,6 +78,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         onGameOver(winner, blackCount, whiteCount);
     };
 
+    // 駒を置く処理
     const makeMove = (board, row, col, player) => {
         const directions = [
             [0, 1], [1, 0], [0, -1], [-1, 0],
@@ -98,6 +110,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         return validMove;
     };
 
+    // ゲームが終了したかどうかを確認
     const checkGameOver = (board) => {
         for (let row = 0; row < boardSize; row++) {
             for (let col = 0; col < boardSize; col++) {
@@ -112,6 +125,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         return true;
     };
 
+    // 駒を置けるかどうかを確認
     const canMove = (board, row, col, player) => {
         const directions = [
             [0, 1], [1, 0], [0, -1], [-1, 0],
@@ -133,6 +147,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         return false;
     };
 
+    // 勝者を計算
     const calculateWinner = (board) => {
         let blackCount = 0;
         let whiteCount = 0;
@@ -147,6 +162,7 @@ function Game({ boardSize, player1, player2, onGameOver }) {
         return blackCount > whiteCount ? 'black' : 'white';
     };
 
+    // 駒数を更新
     const updateCounts = (board) => {
         let blackCount = 0;
         let whiteCount = 0;
